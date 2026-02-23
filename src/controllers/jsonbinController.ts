@@ -3,6 +3,12 @@ import { env } from "../config/env";
 
 type JsonBody = Record<string, unknown>;
 
+type CreateBinOptions = {
+  name?: string;
+  private?: boolean;
+  collection?: string;
+};
+
 export class JsonbinController {
   private baseUrl = env.baseUrl;
   private masterKey = env.masterKey;
@@ -14,13 +20,13 @@ export class JsonbinController {
     };
   }
 
-  async createBin(record: JsonBody, name?: string): Promise<Response> {
+  async createBin(record: JsonBody, options?: CreateBinOptions): Promise<Response> {
     const req = request
       .post(this.baseUrl + "/b")
       .set(this.headers());
 
-    if (name) {
-      req.set("X-Bin-Name", name);
+    if (options?.name) {
+      req.set("X-Bin-Name", options.name);
     }
 
     return req.send(record);

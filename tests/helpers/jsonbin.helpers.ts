@@ -10,7 +10,7 @@ export async function createBin(
   payload: JsonBody,
   name?: string
 ): Promise<string> {
-  const res = await controller.createBin(payload, name);
+const res = await controller.createBin(payload, name ? { name } : undefined);
 
   expect([200, 201]).toContain(res.status);
 

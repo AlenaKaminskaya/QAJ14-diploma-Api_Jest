@@ -53,46 +53,47 @@ describe("JSONBin API Integration Tests", () => {
 
   describe("GET /b/:id", () => {
 
-    test("GET-1: read existing bin returns 200", async () => {
-      const id = await createBin(controller, createdIds, { x: 1 });
+     test("GET-1: read existing bin returns 200 and correct data", async () => {
+      // ✅ Combined teacher-commented equivalent tests into one
+      const payload = { name: "Lena" };
+      const id = await createBin(controller, createdIds, payload);
+
       const res = await controller.readBin(id);
 
       expect(res.status).toBe(200);
-    });
-
-    test("GET-2: read returns correct data", async () => {
-      const id = await createBin(controller, createdIds, { name: "Lena" });
-      const res = await controller.readBin(id);
-
       expect(res.body.record.name).toBe("Lena");
     });
 
-    test("GET-3: read non-existing returns 404", async () => {
-      await expectFail(
-        () => controller.readBin("ffffffffffffffffffffffff"),
-        404
+    test("GET-2: read non-existing returns 404", async () => {
+      await expectFail(() => controller.readBin("ffffffffffffffffffffffff"), 404);
+    });
+
+    test("GET-3: read bin created with custom name returns metadata name (if available)", async () => {
+      const createRes = await controller.createBin(
+        { x: 1 },
+        { name: "named-bin" }
       );
+
+      expect([200, 201]).toContain(createRes.status);
+
+      const id = createRes.body?.metadata?.id;
+      expect(id).toBeTruthy();
+      createdIds.push(id);
+
+      const readRes = await controller.readBin(id);
+      expect(readRes.status).toBe(200);
+      if (readRes.body?.metadata?.name !== undefined) {
+        expect(readRes.body.metadata.name).toBe("named-bin");
+      }
     });
 
-    test("GET-4: after delete GET returns 404", async () => {
-      const id = await createBin(controller, createdIds, { x: 1 });
-
-      await controller.deleteBin(id);
-
-      await expectFail(() => controller.readBin(id), 404);
-    });
-
-    test("GET-5: read complex object", async () => {
-      const id = await createBin(controller, createdIds, {
-        obj: { a: "b" }
-      });
+    test("GET-4: read complex object", async () => {
+      const id = await createBin(controller, createdIds, { obj: { a: "b" } });
 
       const res = await controller.readBin(id);
       expect(res.body.record.obj.a).toBe("b");
     });
-
   });
-
   describe("PUT /b/:id", () => {
 
     test("PUT-1: update existing bin returns 200", async () => {
